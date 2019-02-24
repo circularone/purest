@@ -1,0 +1,63 @@
+services:
+  purest.route_subscriber:
+    class: Drupal\purest\Routing\PurestRouteSubscriber
+    arguments: ['@config.factory']
+    tags:
+      - { name: event_subscriber }
+
+  # purest.language_negotiator:
+  #   class: Drupal\fts_core\LanguageNegotiator
+  #   arguments: ['@request_stack', '@language_manager', '@language_negotiator', '@current_user', '@config.factory']
+
+  purest.normalizer_form_builder:
+    class: Drupal\purest\PurestNormalizerFormBuilder
+    arguments: ['@config.factory','@entity_field.manager']
+
+  # Typed data normalizer - normalizes most fields, removing the
+  # "value" array part and simply returning the field's value.
+  purest.typed_data:
+    class: Drupal\purest\Normalizer\TypedDataNormalizer
+    arguments: ['@config.factory']
+    tags:
+      - { name: normalizer, priority: 20 }
+
+  # Removes X-Generator header from rest responses
+  purest.x_generator:
+    class: Drupal\purest\EventSubscriber\RemoveXGeneratorHeaderSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  # Applies any custom keys to entity properties and hides empty
+  # and/or excludes fields
+  purest.normalizer:
+    class: Drupal\purest\Normalizer\ContentEntityNormalizer
+    arguments: ['@entity.manager','@config.factory','@entity_type.bundle.info','@entity_field.manager']
+    tags:
+      - { name: normalizer, priority: 35 }
+
+  # purest.normalizer.field:
+  #   class: Drupal\purest\Normalizer\FieldNormalizer
+  #   tags:
+  #     - { name: normalizer, priority: 50 }
+
+  purest.normalizer.image:
+    class: Drupal\purest\Normalizer\ImageNormalizer
+    tags:
+      - { name: normalizer, priority: 50 }
+
+  purest.normalizer.entity_reference:
+    class: Drupal\purest\Normalizer\EntityReferenceNormalizer
+    arguments: ['@entity.repository']
+    tags:
+      - { name: normalizer, priority: 50 }
+
+  purest.normalizer.link:
+    class: Drupal\purest\Normalizer\LinkNormalizer
+    tags:
+      - { name: normalizer, priority: 50 }
+
+  purest.normalizer.path:
+    class: Drupal\purest\Normalizer\PathNormalizer
+    tags:
+      - { name: normalizer, priority: 50 }
+

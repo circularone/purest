@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * @file
+ * Contains purest.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function purest_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the purest module.
+    case 'help.page.purest':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides rest resources for headless Drupal 8 applications.') . '</p>';
+      $output .= '<h3>' . t('Normalizer Content Entity List') . '</h3>';
+      $output .= '<p>' . t('This form display a list of all entity types that are <a href=":url" target="_blank">Content Entities</a>. Examples inlude:', [':url' => 'https://www.drupal.org/docs/8/api/entity-api/content-entity']) . '</p><ul>';
+      $output .= '<li>Node</li>';
+      $output .= '<li>User</li>';
+      $output .= '<li>Taxonomy</li></ul>';
+      $output .= '<p>' . t('The aim of the form is to allow customization for any entity type to rewrite the output of the entity in rest responses. Out of the box Drupal rest responses will look like:') . '</p>';
+      $output .= '
+      <pre>
+        <code>
+          {
+            "nid": {
+              "value": 1
+            },
+            "title": {
+              "value": "Node title"
+            },
+            "field_custom_example": {
+              "value": "custom field valu"
+            }
+            ...
+          }
+        </code>
+      </pre>';
+      $output .= '<p>' . t('Using Purest you can easily rewrite the response output like so:') . '</p>';
+      $output .= '
+      <pre>
+        <code>
+          {
+            "id": 1,
+            "name": "Node title",
+            "custom": "custom field value"
+            ...
+          }
+        </code>
+      </pre>';
+    default:
+  }
+}

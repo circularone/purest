@@ -1,0 +1,74 @@
+purest.config:
+  path: '/admin/config/purest'
+  defaults:
+    _form: '\Drupal\purest\Form\ConfigForm'
+    _title: 'Purest Settings'
+  requirements:
+    _permission: 'administer site configuration'
+  parent: system.admin_config_system
+
+purest.normalizer:
+  path: '/admin/config/purest/normalizer'
+  defaults:
+    _form: '\Drupal\purest\Form\EntityListNormalizerForm'
+    _title: 'Purest Normalizer Entity List'
+  requirements:
+    _permission: 'administer site configuration'
+  parent: purest.config
+
+purest.normalizer.entity:
+  path: '/admin/config/purest/normalizer/{type}/{bundle}'
+  defaults:
+    _form: '\Drupal\purest\Form\EntityFieldsNormalizerForm'
+    _title: 'Entity Fields Normalizer'
+    _title_callback: '\Drupal\purest\Form\EntityFieldsNormalizerForm::getTitle'
+  requirements:
+    _permission: 'access administration pages'
+  parent: purest.normalizer
+  options:
+    _admin_route: TRUE
+
+purest.normalizer.entity.field:
+  path: '/admin/config/purest/normalizer/{type}/{bundle}/{field}'
+  defaults:
+    _form: '\Drupal\purest\Form\EntityFieldNormalizerForm'
+    _title: 'Entity Field Normalizer'
+    _title_callback: '\Drupal\purest\Form\EntityFieldNormalizerForm::getTitle'
+  requirements:
+    _permission: 'access administration pages'
+  parent: purest.normalizer.entity
+  options:
+    _admin_route: TRUE
+
+purest.normalizer.entity.field.image:
+  path: '/admin/config/purest/normalizer/{type}/{bundle}/{field}/image'
+  defaults:
+    _form: '\Drupal\purest\Form\ImageFieldNormalizerForm'
+    _title: 'Entity Field Normalizer'
+    _title_callback: '\Drupal\purest\Form\ImageFieldNormalizerForm::getTitle'
+  requirements:
+    _permission: 'access administration pages'
+  parent: purest.normalizer.entity
+  options:
+    _admin_route: TRUE
+
+purest.denormalizer:
+  path: '/admin/config/purest/denormalizer'
+  defaults:
+    _form: '\Drupal\purest\Form\EntityListDenormalizerForm'
+    _title: 'Purest Denormalizer Entity List'
+  requirements:
+    _permission: 'administer site configuration'
+  parent: purest.config
+
+purest.denormalizer.entity:
+  path: '/admin/config/purest/denormalizer/{type}/{bundle}'
+  defaults:
+    _form: '\Drupal\purest\Form\EntityFieldsDenormalizerForm'
+    _title: 'Entity Resource Settings'
+    _title_callback: '\Drupal\purest\Form\EntityFieldsDenormalizerForm::getTitle'
+  requirements:
+    _permission: 'access administration pages'
+  parent: purest.denormalizer
+  options:
+    _admin_route: TRUE

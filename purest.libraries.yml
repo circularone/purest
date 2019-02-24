@@ -1,0 +1,4 @@
+purest_content_entity_reference:
+  css:
+    component:
+      css/purest-content-entity-reference-widget.css: {}

@@ -1,0 +1,67 @@
+field.storage_settings.purest_content_entity_reference:
+  type: mapping
+  label: Content Entity Reference storage settings
+  mapping:
+    foo:
+      type: string
+      label: Foo
+
+field.field_settings.purest_content_entity_reference:
+  type: mapping
+  label: Content Entity Reference field settings
+  mapping:
+    bar:
+      type: string
+      label: Bar
+
+field.value.purest_content_entity_reference:
+  type: mapping
+  label: Default value
+  mapping:
+    value:
+      type: label
+      label: Value
+
+# Field storage.
+field.storage_settings.purest_content_entity_reference:
+  type: mapping
+  label: Example storage settings
+  mapping:
+    foo:
+      type: string
+      label: Foo
+# Field instance.
+field.field_settings.purest_content_entity_reference:
+  type: mapping
+  label: Example field settings
+  mapping:
+    bar:
+      type: string
+      label: Bar
+# Default value.
+field.value.purest_content_entity_reference:
+  type: mapping
+  label: Default value
+  mapping:
+    content_entity_type:
+      type: string
+      label: Content Entity Type
+    content_entity_bundle:
+      type: string
+      label: Bundle
+# Field widget.
+field.widget.settings.purest_content_entity_reference:
+  type: mapping
+  label: Example widget settings
+  mapping:
+    foo:
+      type: string
+      label: Foo
+# Field formatter.
+field.formatter.settings.purest_content_entity_reference_default:
+  type: mapping
+  label: Example formatter settings
+  mapping:
+    foo:
+      type: string
+      label: Foo

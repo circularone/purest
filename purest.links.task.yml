@@ -1,0 +1,30 @@
+purest.admin:
+  route_name: purest.config
+  title: 'Settings'
+  base_route: purest.config
+
+purest.admin.normalizer:
+  route_name: purest.normalizer
+  title: 'Normalizer'
+  base_route: purest.config
+  weight: 1
+
+purest.admin.normalizer.entity:
+  route_name: purest.normalizer.entity
+  title: 'Entity Fields Normalizer'
+  base_route: purest.config.normalizer
+  weight: 2
+  parent_id: purest.admin.normalizer
+
+purest.admin.denormalizer:
+  route_name: purest.denormalizer
+  title: 'Denormalizer'
+  base_route: purest.config
+  weight: 3
+
+purest.admin.denormalizer.entity:
+  route_name: purest.denormalizer.entity
+  title: 'Entity Fields Denormalizer'
+  base_route: purest.config.normalizer
+  weight: 4
+  parent_id: purest.admin.denormalizer
