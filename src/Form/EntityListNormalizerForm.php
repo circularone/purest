@@ -57,13 +57,16 @@ class EntityListNormalizerForm extends ConfigFormBase {
     // Get all content entity types and all bundles for that type.
     $this->entity_types = [];
     foreach ($this->entityTypeManager->getDefinitions() as $key => $val) {
+
       if ($val instanceof ContentEntityType) {
         $keys = $val->getKeys();
-        if ($keys) {
+        if (!empty($keys)) {
           $this->entity_types[$key] = [
             'title' => $val->getLabel(),
             'bundles' => $this->entityTypeBundle->getBundleInfo($key),
           ];
+
+          // dpm($this->entity_types[$key]);
         }
       }
     }
@@ -125,19 +128,19 @@ class EntityListNormalizerForm extends ConfigFormBase {
 
     foreach ($this->entity_types as $entity_type_id => $entity_type) {
       foreach ($entity_type['bundles'] as $bundle_id => $bundle) {
-        $form['entity_list'][$bundle_id]['name'] = [
+        $form['entity_list'][$entity_type_id . '__' . $bundle_id]['name'] = [
           '#type' => 'html_tag',
           '#tag' => 'span',
           '#value' => $bundle_id,
         ];
 
-        $form['entity_list'][$bundle_id]['type'] = [
+        $form['entity_list'][$entity_type_id . '__' . $bundle_id]['type'] = [
           '#type' => 'html_tag',
           '#tag' => 'span',
           '#value' => $entity_type_id,
         ];
 
-        $form['entity_list'][$bundle_id]['actions'] = [
+        $form['entity_list'][$entity_type_id . '__' . $bundle_id]['actions'] = [
           '#type' => 'dropbutton',
           '#links' => [
             'edit' => [
@@ -152,6 +155,8 @@ class EntityListNormalizerForm extends ConfigFormBase {
         ];
       }
     }
+
+    dpm($form);
 
     return parent::buildForm($form, $form_state);
   }

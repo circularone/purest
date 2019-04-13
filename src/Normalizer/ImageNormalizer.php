@@ -41,8 +41,6 @@ class ImageNormalizer extends SerializationTypedDataNormalizer {
       $field_config = $fields_config[$field_name];
     }
 
-    \Drupal::logger('purest')->notice(print_R($field_config, TRUE));
-
     $formats = [
       'meta_multiple_meta',
       'meta_single_meta',
@@ -59,8 +57,6 @@ class ImageNormalizer extends SerializationTypedDataNormalizer {
     if (isset($field_config['format']) && !empty($field_config['format']) && in_array($field_config['format'], $formats)) {
       $image_format = $field_config['format'];
     }
-
-    \Drupal::logger('purest')->notice('Format: ' . $image_format);
 
     $output = NULL;
 

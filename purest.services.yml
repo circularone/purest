@@ -15,11 +15,11 @@ services:
 
   # Typed data normalizer - normalizes most fields, removing the
   # "value" array part and simply returning the field's value.
-  purest.typed_data:
-    class: Drupal\purest\Normalizer\TypedDataNormalizer
-    arguments: ['@config.factory']
-    tags:
-      - { name: normalizer, priority: 20 }
+#  purest.typed_data:
+#    class: Drupal\purest\Normalizer\TypedDataNormalizer
+#    arguments: ['@config.factory']
+#    tags:
+#      - { name: normalizer, priority: 50 }
 
   # Removes X-Generator header from rest responses
   purest.x_generator:
@@ -33,12 +33,12 @@ services:
     class: Drupal\purest\Normalizer\ContentEntityNormalizer
     arguments: ['@entity.manager','@config.factory','@entity_type.bundle.info','@entity_field.manager']
     tags:
-      - { name: normalizer, priority: 35 }
+      - { name: normalizer, priority: 50 }
 
-  # purest.normalizer.field:
-  #   class: Drupal\purest\Normalizer\FieldNormalizer
-  #   tags:
-  #     - { name: normalizer, priority: 50 }
+  purest.normalizer.field:
+    class: Drupal\purest\Normalizer\FieldNormalizer
+    tags:
+      - { name: normalizer, priority: 50 }
 
   purest.normalizer.image:
     class: Drupal\purest\Normalizer\ImageNormalizer

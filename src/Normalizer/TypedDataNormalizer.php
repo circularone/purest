@@ -42,8 +42,9 @@ class TypedDataNormalizer extends SerializationTypedDataNormalizer {
     //   return FALSE;
     // }
 
+
     if ($this->serializingParent) {
-      $this->serializingParent = FALSE;
+      // $this->serializingParent = FALSE;
       // Let parent handle it.
       return FALSE;
     }
@@ -74,8 +75,8 @@ class TypedDataNormalizer extends SerializationTypedDataNormalizer {
 
     // If this is a field with never more then 1 value, show the first value.
     if ($object instanceof FieldItemListInterface) {
-      $cardinality = $object->getFieldDefinition()->getFieldStorageDefinition()
-      ->getCardinality();
+      $cardinality = $object->getFieldDefinition()
+                                ->getFieldStorageDefinition()->getCardinality();
 
       if ($cardinality === 1) {
         if (isset($value[0])) {

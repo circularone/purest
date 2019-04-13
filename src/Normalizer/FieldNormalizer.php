@@ -54,6 +54,7 @@ class FieldNormalizer extends CoreFieldNormalizer {
       $context['target_instance'] = $items->appendItem();
       $this->serializer->denormalize($item_data, $item_class, $format, $context);
     }
+
     return $items;
   }
 

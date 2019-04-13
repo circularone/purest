@@ -9,6 +9,8 @@ use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\TypedData\TypedDataInternalPropertiesHelper;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Validation\Plugin\Validation\Constraint\CountConstraint;
 
 /**
  * Converts the Drupal entity object structures to a normalized array.
@@ -70,24 +72,6 @@ class ContentEntityNormalizer extends CoreContentEntityNormalizer {
 
     // This normalizer only supports objects that implement the ContentEntityInterface.
     if ($data instanceof ContentEntityInterface) {
-      $entity_type = $data->getEntityTypeId();
-      $bundle = $data->bundle();
-
-      $config_name = 'purest.normalizer.';
-      $config_name .= $entity_type . '.';
-      $config_name .= $bundle;
-
-      $this->entityConfig = $this->configFactory->get($config_name);
-      $normalize = $this->entityConfig->get('normalize');
-
-      // var_dump('purest.normalizer.' . $this->entity_type . '.' . $this->bundle);
-
-      // if (NULL === $normalize || !$normalize) {
-      //   return FALSE;
-      // }
-
-      // var_dump($normalize);
-
       return TRUE;
     }
 
@@ -113,11 +97,35 @@ class ContentEntityNormalizer extends CoreContentEntityNormalizer {
 
     /** @var \Drupal\Core\Entity\Entity $entity */
     foreach (TypedDataInternalPropertiesHelper::getNonInternalProperties($entity
-      ->getTypedData()) as $name => $field_items) {
+      ->getTypedData()) as $name => $field_item) {
 
-      if (isset($values[$name]) && $field_items->access('view', $context['account'])) {
-        // $value = $this->serializer->normalize($field_items, $format, $context);
+      if (isset($values[$name]) && $field_item->access('view', $context['account'])) {
         $value = $values[$name];
+
+        // Get the cardinality of fielditemlists and return the first item only
+        // if cardinality is 1.
+        if ($field_item instanceof FieldItemListInterface) {
+          $field_settings = $field_item->getConstraints();
+
+          foreach ($field_settings as $setting) {
+            if ($setting instanceof CountConstraint) {
+              if ($setting->max === 1) {
+                $value = isset($value[0]) ? $value[0] : NULL;
+              }
+            }
+          }
+        }
+
+        // If the value is an associative array with 'value' as only key, return
+        // the value of 'value'. Check for end value as it may be a range field.
+        if (is_array($value) && isset($value['value']) && !isset($value['end_value'])) {
+          if (isset($value['processed'])) {
+            $value = $value['processed'];
+          }
+          else {
+            $value = $value['value'];
+          }
+        }
 
         if (isset($fields_config[$name])) {
           if (intval($fields_config[$name]['exclude'])) {
@@ -145,6 +153,12 @@ class ContentEntityNormalizer extends CoreContentEntityNormalizer {
     }
 
     return $attributes;
+  }
+
+  private function removeCardinality(&$entity) {
+    foreach ($entity as $key => $value) {
+
+    }
   }
 
 }
