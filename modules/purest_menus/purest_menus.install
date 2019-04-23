@@ -1,0 +1,14 @@
+<?php
+
+// function purest_menus_uninstall() {
+//   $update_manager = Drupal::service('entity.definition_update_manager');
+
+//   // $definition = $update_manager->getFieldStorageDefinition('purest_menus_in_active_trail', 'menu_link_content');
+//   // $update_manager->uninstallFieldStorageDefinition($definition);
+
+//   // $definition = $update_manager->getFieldStorageDefinition('purest_menus_has_subtree', 'menu_link_content');
+//   // $update_manager->uninstallFieldStorageDefinition($definition);
+
+//   $definition = $update_manager->getFieldStorageDefinition('purest_menus_subtree', 'menu_link_content');
+//   $update_manager->uninstallFieldStorageDefinition($definition);
+// }

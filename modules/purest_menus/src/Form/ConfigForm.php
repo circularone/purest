@@ -105,10 +105,11 @@ class ConfigForm extends ConfigFormBase {
       '#title' => $this->t('Menus'),
       '#description' => $this->t('Type to search for menus, separate each menu with a comma.'),
       '#tags' => TRUE,
+      '#maxlength' => 255,
     ];
 
     $menu_ids = $config->get('menus');
-    
+
     if ($menu_ids) {
       $default_value = [];
 
@@ -119,7 +120,7 @@ class ConfigForm extends ConfigFormBase {
           $default_value[] = $menu;
         }
       }
-      
+
       $form['menus']['#default_value'] = $default_value;
     }
 

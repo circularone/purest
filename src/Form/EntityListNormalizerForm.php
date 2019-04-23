@@ -60,13 +60,12 @@ class EntityListNormalizerForm extends ConfigFormBase {
 
       if ($val instanceof ContentEntityType) {
         $keys = $val->getKeys();
+
         if (!empty($keys)) {
           $this->entity_types[$key] = [
             'title' => $val->getLabel(),
             'bundles' => $this->entityTypeBundle->getBundleInfo($key),
           ];
-
-          // dpm($this->entity_types[$key]);
         }
       }
     }
@@ -155,8 +154,6 @@ class EntityListNormalizerForm extends ConfigFormBase {
         ];
       }
     }
-
-    dpm($form);
 
     return parent::buildForm($form, $form_state);
   }

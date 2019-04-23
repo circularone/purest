@@ -33,6 +33,8 @@ class PurestViewsPaginationSerializer extends Serializer {
       $rows[] = $this->view->rowPlugin->render($row);
     }
 
+    // var_dump(get_class($this->views));
+
     unset($this->view->row_index);
 
     // Get the content type configured in the display or fallback to the
@@ -59,7 +61,8 @@ class PurestViewsPaginationSerializer extends Serializer {
       'list' => $rows,
       'page' => (int) $current_page + 1,
       'total' => (int) $total_items,
-      'pages' => (int) $total_pages
+      'pages' => (int) $total_pages,
+      'test' => get_class($this->view->getQuery())
     ];
 
     return $this->serializer->serialize($result, $content_type, ['views_style_plugin' => $this]);

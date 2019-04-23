@@ -14,6 +14,13 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\rest\Plugin\Deriver\EntityDeriver;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Drupal\Core\Entity\ContentEntityType;
+use Drupal\Core\Entity\EntityTypeBundleInfo;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\Core\Entity\EntityFormBuilderInterface;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Provides a resource to get view modes by entity and bundle.
@@ -24,11 +31,18 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *   id = "purest_entity_definition_resource",
  *   label = @Translation("Purest Entity Definition Resource"),
  *   uri_paths = {
- *     "canonical" = "/purest/{entity_type}/{type}",
+ *     "canonical" = "/purest/entity-form",
  *   }
  * )
  */
 class EntityDefinitionResource extends ResourceBase {
+
+  /**
+   * Entity type manager interface.
+   *
+   * Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
 
   /**
    * The entity type targeted by this resource.
@@ -43,6 +57,17 @@ class EntityDefinitionResource extends ResourceBase {
    * @var \Drupal\Core\Entity\EntityFieldManager
    */
   protected $entityFieldManager;
+
+  protected $request;
+
+  /**
+   * The entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManager
+   */
+  protected $entityTypeBundle;
+
+  protected $formBuilder;
 
   /**
    * Constructs a new EntityDefinitionResource object.
@@ -67,9 +92,31 @@ class EntityDefinitionResource extends ResourceBase {
     array $serializer_formats,
     LoggerInterface $logger,
     EntityFieldManager $entity_field_manager,
-    EntityTypeManagerInterface $entity_type_manager) {
+    EntityTypeManagerInterface $entity_type_manager,
+    RequestStack $request,
+    EntityTypeBundleInfo $entity_type_bundle,
+    EntityFormBuilderInterface $form_builder
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
     $this->entityFieldManager = $entity_field_manager;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->request = $request->getCurrentRequest();
+    $this->entityTypeBundle = $entity_type_bundle;
+    $this->formBuilder = $form_builder;
+    $this->entity_types = [];
+
+    foreach ($this->entityTypeManager->getDefinitions() as $key => $val) {
+      if ($val instanceof ContentEntityType) {
+        $keys = $val->getKeys();
+
+        if (!empty($keys)) {
+          $this->entity_types[$key] = [
+            'title' => $val->getLabel(),
+            'bundles' => $this->entityTypeBundle->getBundleInfo($key),
+          ];
+        }
+      }
+    }
   }
 
   /**
@@ -85,9 +132,12 @@ class EntityDefinitionResource extends ResourceBase {
       $plugin_id,
       $plugin_definition,
       $container->getParameter('serializer.formats'),
-      $container->get('logger.factory')->get('fts_rest'),
+      $container->get('logger.factory')->get('purest'),
       $container->get('entity_field.manager'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('request_stack'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('entity.form_builder')
     );
   }
 
@@ -104,45 +154,155 @@ class EntityDefinitionResource extends ResourceBase {
    *   Throws exception expected.
    */
   public function get() {
-    if (!$type_bundle || strpos($type_bundle, '-')) {
-      return new ResourceResponse([t('Content not found')], 404);
+    $entity_type = $this->request->query->get('entity');
+    $bundle = $this->request->query->get('bundle');
+    $mode = $this->request->query->get('mode');
+
+    $output = [
+      'type' => $entity_type,
+      'bundle' => $bundle,
+      'mode' => $mode,
+      'form_id' => $entity_type . '.' . ($bundle ?? 'default') . '.default',
+      'form' => [],
+      'classes' => [],
+    ];
+
+    if (!array_key_exists($entity_type, $this->entity_types)) {
+      return new ResourceResponse(['error' => t('Entity type does not exists')], 406);
     }
 
-    $type_bundle = explode('-');
-    $type = $type_bundle[0];
-    $bundle = $type_bundle[1];
 
-    $fields = $this->entityFieldManager->getFieldDefinitions($type, $bundle);
-    $output = 'foo';
+    if ($bundle && !array_key_exists($bundle, $this->entity_types[$entity_type]['bundles'])) {
+      return new ResourceResponse(['error' => t('Bundle does not exist')], 406);
+    }
 
-    // $output = [];
-    // foreach ($this->fields as $field_name => $field_definition) {
-    //   if (in_array($field_name, $excluded_fields)) {
-    //     continue;
-    //   }
+    $fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
 
-    //   $output[$field_name] = [
-    //     'label' => $field_definition->getLabel(),
-    //     'type' => $field_definition->getType(),
-    //     'required' => $field_definition->isRequired(),
-    //     'settings' => $field_definition->getSettings(),
-    //   ];
+    $exclude = [
+      'nid',
+      'tid',
+      'id',
+      'job_id',
+      'uuid',
+      'vid',
+      'langcode',
+      'type',
+      'revision_timestamp',
+      'revision_uid',
+      'revision_log',
+      'status',
+      'uid',
+      'created',
+      'changed',
+      'updated',
+      'promote',
+      'sticky',
+      'default_langcode',
+      'revision_default',
+      'revision_translation_affected',
+      'metatag',
+      'field_meta',
+      'menu_link',
+      'path',
+      'field_menu',
+      'field_views',
+      'revision_created',
+      'user_id',
+      'revision_log_message',
+      'revision_user',
+      'lumesse_id',
+      'job',
+      'field_xml',
+      'job_number',
+      'head_count',
+      'language',
+      'field_applications',
+      'preferred_langcode',
+      'preferred_admin_langcode',
+      'field_gdpr',
+      'field_lumesse_username',
+      'field_lumesse_password',
+      'field_lumesse_activated',
+      'field_myaccount',
+      'field_organisations',
+      'field_clicks',
+      'field_coordinates',
+      'field_featured',
+      'field_featured_apply',
+      'field_featured_click',
+      'field_job_centre_plus',
+      'field_promoted',
+      'access',
+      'login',
+      'roles',
+      'timezone',
+      'init',
+    ];
+
+    foreach ($fields as $key => $value) {
+      $output['classes'][] = get_class($value);
+      if (in_array($key, $exclude)) continue;
+      if ($entity_type === 'user' && $key === 'name') continue;
+
+      if ($value instanceof BaseFieldDefinition) {
+        $output['form'][$key] = $value->toArray();
+        $output['form'][$key]['field_type'] = $value->getType();
+        //   'multiple' => $value->isMultiple(),
+        //   // 'default' => $value->getDefaultValue(),
+        //   'key' => $value->getName(),
+        //   'label' => $value->getLabel(),
+        //   'description' => $value->getDescription() ?? '',
+        //   'required' => $value->isRequired(),
+        //   'disabled' => $value->isReadOnly(),
+        //   'data_type' => $value->getDataType(),
+        //   'constraints' => $value->getConstraints(),
+        // ];
+      }
+
+      if ($value instanceof FieldConfig) {
+        $output['form'][$key] = $value->toArray();
+
+        if ($value->getType() === 'list_string') {
+          $field_storage = $this->entityTypeManager->getStorage('field_storage_config')->load(str_replace('field.storage.', '', $output['form'][$key]['dependencies']['config'][0]));
+
+          $output['form'][$key]['allowed_values'] = $field_storage->getSetting('allowed_values');
+        }
+      }
+
+      switch ($output['form'][$key]['field_type']) {
+        case 'list_string':
+          $output['form'][$key]['field_type'] = 'select';
+          break;
+        case 'string':
+          $output['form'][$key]['field_type'] = 'text';
+          break;
+        case 'text_long':
+          $output['form'][$key]['field_type'] = 'textarea';
+          break;
+        case 'boolean':
+          $output['form'][$key]['field_type'] = 'checkbox';
+          break;
+        case 'entity_reference':
+          if ($output['form'][$key]['settings']['handler'] === 'default:taxonomy_term') {
+            $vocab = array_keys($output['form'][$key]['settings']['handler_settings']['target_bundles']);
+            $vocab =reset($vocab);
+
+            $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
+              'status' => 1,
+              'vid' => $vocab,
+            ]);
+
+            $output['form'][$key]['allowed_values'] = [];
+
+            foreach ($terms as $term) {
+              $output['form'][$key]['allowed_values'][$term->id()] = $term->get('name')->value;
+            }
+          }
+          break;
+      }
 
 
-    //   if ($field_definition instanceof BaseFieldDefinition) {
-    //     // $output[$field_name]['multiple'] = $field_definition->getCardinality();
-    //   }
-    //   else {
-    //     $field_config = FieldStorageConfig::load($field_definition->getEntityTypeId(), $field_name);
-    //     if ($field_config !== NULL) {
-    //       $output[$field_name]['multiple'] = $field_config->getCardinality();
-    //     }
-    //   }
-
-      // if ($output[$field_name]['type'] === 'address') {
-      //   $output[$field_name]['test'] = $field_definition;
-      // }
-    // }
+    }
 
     return new ResourceResponse($output, 200);
   }

@@ -38,7 +38,7 @@ services:
   purest.normalizer.field:
     class: Drupal\purest\Normalizer\FieldNormalizer
     tags:
-      - { name: normalizer, priority: 50 }
+      - { name: normalizer, priority: 30 }
 
   purest.normalizer.image:
     class: Drupal\purest\Normalizer\ImageNormalizer

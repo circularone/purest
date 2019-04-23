@@ -28,7 +28,7 @@ function purest_menus_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('Menu Resource') . '</h3>';
       $output .= '<p>' . t('The menu resource returns a single menu specified in the resource path. e.g. "/purest/menu/[menu_name_here]". Pass an internal path to have the active trail indicated. e.g. /purest/menus?alias=/internal-path') . '</p>';
       $output .= '<p>' . t('The resource accepts an alias parameter. If a valid internal path is supplied the active trail the active trail will be indicated. e.g. /purest/menus?alias=/internal-path') . '</p>';
-      
+
       return $output;
       break;
 
@@ -44,19 +44,19 @@ function purest_menus_help($route_name, RouteMatchInterface $route_match) {
 function purest_menus_entity_base_field_info(EntityTypeInterface $entity_type) {
   $fields = [];
 
-  if ($entity_type->id() == 'menu_link_content') {
-    $fields['purest_menus_in_active_trail'] = BaseFieldDefinition::create('boolean')
-      ->setLabel(t('In Active Trail'))
-      ->setDescription('Indicates if the link is in the active trail');
+  // if ($entity_type->id() == 'menu_link_content') {
+  //   $fields['purest_menus_in_active_trail'] = BaseFieldDefinition::create('boolean')
+  //     ->setLabel(t('In Active Trail'))
+  //     ->setDescription('Indicates if the link is in the active trail');
 
-    $fields['purest_menus_has_subtree'] = BaseFieldDefinition::create('boolean')
-      ->setLabel(t('Has Subtree'))
-      ->setDescription('Indicates if the link has sub links');
+  //   $fields['purest_menus_has_subtree'] = BaseFieldDefinition::create('boolean')
+  //     ->setLabel(t('Has Subtree'))
+  //     ->setDescription('Indicates if the link has sub links');
 
-    $fields['purest_menus_subtree'] = BaseFieldDefinition::create('map')
-      ->setLabel(t('Subtree'))
-      ->setDescription('Child links of the link item');
-  }
+  //   $fields['purest_menus_subtree'] = BaseFieldDefinition::create('map')
+  //     ->setLabel(t('Subtree'))
+  //     ->setDescription('Child links of the link item');
+  // }
 
   return $fields;
 

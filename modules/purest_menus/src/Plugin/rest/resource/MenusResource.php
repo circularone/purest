@@ -60,19 +60,19 @@ class MenusResource extends ResourceBase {
 
   /**
    *
-   * 
+   *
    */
   protected $alias;
 
   /**
    *
-   * 
+   *
    */
   protected $activeTrail;
 
   /**
    *
-   * 
+   *
    */
   protected $aliasManager;
 
@@ -156,7 +156,7 @@ class MenusResource extends ResourceBase {
     if ($menu_ids) {
       if ($this->alias) {
         $cache_metadata = (new CacheableMetadata())->addCacheContexts(['url.query_args']);
-      
+
         foreach ($available_languages as $langcode => $language) {
           if ($this->aliasStorageInterface->aliasExists($this->alias, $langcode)) {
             $alias_exists = TRUE;
@@ -205,7 +205,7 @@ class MenusResource extends ResourceBase {
     if (isset($cache_metadata)) {
       $response->addCacheableDependency($cache_metadata);
     }
-    
+
     foreach ($raw_menus as $menu) {
       $response->addCacheableDependency($menu);
     }
