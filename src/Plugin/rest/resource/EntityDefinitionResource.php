@@ -52,17 +52,6 @@ class EntityDefinitionResource extends ResourceBase {
    */
   protected $entityFieldManager;
 
-  protected $request;
-
-  /**
-   * The entity field manager.
-   *
-   * @var \Drupal\Core\Entity\EntityFieldManager
-   */
-  protected $entityTypeBundle;
-
-  protected $formBuilder;
-
   /**
    * The current request stack.
    * 
