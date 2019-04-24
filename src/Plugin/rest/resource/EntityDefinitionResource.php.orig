@@ -15,7 +15,13 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
+<<<<<<< HEAD
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityFormBuilderInterface;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+=======
+use Drupal\Core\Entity\EntityFormBuilderInterface;
+>>>>>>> origin/entity_form_resource
 use Drupal\field\Entity\FieldConfig;
 
 /**
@@ -127,6 +133,13 @@ class EntityDefinitionResource extends ResourceBase {
     $this->entityTypeBundle = $entity_type_bundle;
     $this->formBuilder = $form_builder;
     $this->entity_types = [];
+<<<<<<< HEAD
+
+    foreach ($this->entityTypeManager->getDefinitions() as $key => $val) {
+      if ($val instanceof ContentEntityType) {
+        $keys = $val->getKeys();
+
+=======
     $entities = $this->entityTypeManager->getDefinitions();
 
     foreach ($entities as $key => $val) {
@@ -135,11 +148,15 @@ class EntityDefinitionResource extends ResourceBase {
 
         $class = $val->getClass();
 
+>>>>>>> origin/entity_form_resource
         if (!empty($keys)) {
           $this->entity_types[$key] = [
             'title' => $val->getLabel(),
             'bundles' => $this->entityTypeBundle->getBundleInfo($key),
+<<<<<<< HEAD
+=======
             'class' => $val->getClass(),
+>>>>>>> origin/entity_form_resource
           ];
         }
       }
@@ -183,6 +200,153 @@ class EntityDefinitionResource extends ResourceBase {
     $bundle = $this->request->query->get('bundle');
     $mode = $this->request->query->get('mode');
 
+<<<<<<< HEAD
+    $output = [
+      'type' => $entity_type,
+      'bundle' => $bundle,
+      'mode' => $mode,
+      'form_id' => $entity_type . '.' . ($bundle ?? 'default') . '.default',
+      'form' => [],
+      'classes' => [],
+    ];
+
+    if (!array_key_exists($entity_type, $this->entity_types)) {
+      return new ResourceResponse(['error' => t('Entity type does not exists')], 406);
+    }
+
+
+    if ($bundle && !array_key_exists($bundle, $this->entity_types[$entity_type]['bundles'])) {
+      return new ResourceResponse(['error' => t('Bundle does not exist')], 406);
+    }
+
+    $fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
+
+    $exclude = [
+      'nid',
+      'tid',
+      'id',
+      'job_id',
+      'uuid',
+      'vid',
+      'langcode',
+      'type',
+      'revision_timestamp',
+      'revision_uid',
+      'revision_log',
+      'status',
+      'uid',
+      'created',
+      'changed',
+      'updated',
+      'promote',
+      'sticky',
+      'default_langcode',
+      'revision_default',
+      'revision_translation_affected',
+      'metatag',
+      'field_meta',
+      'menu_link',
+      'path',
+      'field_menu',
+      'field_views',
+      'revision_created',
+      'user_id',
+      'revision_log_message',
+      'revision_user',
+      'lumesse_id',
+      'job',
+      'field_xml',
+      'job_number',
+      'head_count',
+      'language',
+      'field_applications',
+      'preferred_langcode',
+      'preferred_admin_langcode',
+      'field_gdpr',
+      'field_lumesse_username',
+      'field_lumesse_password',
+      'field_lumesse_activated',
+      'field_myaccount',
+      'field_organisations',
+      'field_clicks',
+      'field_coordinates',
+      'field_featured',
+      'field_featured_apply',
+      'field_featured_click',
+      'field_job_centre_plus',
+      'field_promoted',
+      'access',
+      'login',
+      'roles',
+      'timezone',
+      'init',
+    ];
+
+    foreach ($fields as $key => $value) {
+      $output['classes'][] = get_class($value);
+      if (in_array($key, $exclude)) continue;
+      if ($entity_type === 'user' && $key === 'name') continue;
+
+      if ($value instanceof BaseFieldDefinition) {
+        $output['form'][$key] = $value->toArray();
+        $output['form'][$key]['field_type'] = $value->getType();
+        //   'multiple' => $value->isMultiple(),
+        //   // 'default' => $value->getDefaultValue(),
+        //   'key' => $value->getName(),
+        //   'label' => $value->getLabel(),
+        //   'description' => $value->getDescription() ?? '',
+        //   'required' => $value->isRequired(),
+        //   'disabled' => $value->isReadOnly(),
+        //   'data_type' => $value->getDataType(),
+        //   'constraints' => $value->getConstraints(),
+        // ];
+      }
+
+      if ($value instanceof FieldConfig) {
+        $output['form'][$key] = $value->toArray();
+
+        if ($value->getType() === 'list_string') {
+          $field_storage = $this->entityTypeManager->getStorage('field_storage_config')->load(str_replace('field.storage.', '', $output['form'][$key]['dependencies']['config'][0]));
+
+          $output['form'][$key]['allowed_values'] = $field_storage->getSetting('allowed_values');
+        }
+      }
+
+      switch ($output['form'][$key]['field_type']) {
+        case 'list_string':
+          $output['form'][$key]['field_type'] = 'select';
+          break;
+        case 'string':
+          $output['form'][$key]['field_type'] = 'text';
+          break;
+        case 'text_long':
+          $output['form'][$key]['field_type'] = 'textarea';
+          break;
+        case 'boolean':
+          $output['form'][$key]['field_type'] = 'checkbox';
+          break;
+        case 'entity_reference':
+          if ($output['form'][$key]['settings']['handler'] === 'default:taxonomy_term') {
+            $vocab = array_keys($output['form'][$key]['settings']['handler_settings']['target_bundles']);
+            $vocab =reset($vocab);
+
+            $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
+              'status' => 1,
+              'vid' => $vocab,
+            ]);
+
+            $output['form'][$key]['allowed_values'] = [];
+
+            foreach ($terms as $term) {
+              $output['form'][$key]['allowed_values'][$term->id()] = $term->get('name')->value;
+            }
+          }
+          break;
+      }
+
+
+    }
+=======
     if (!array_key_exists($entity_type, $this->entity_types)) {
       return new ModifiedResourceResponse([
         'error' => 'Entity type not found',
@@ -234,6 +398,7 @@ class EntityDefinitionResource extends ResourceBase {
       // if (isset($element['display']['form']['options']['type'])) {
       //   $element['type'] = $element['display']['form']['options']['type'];
       // }
+>>>>>>> origin/entity_form_resource
 
       switch ($element['type']) {
         case 'list_string':
