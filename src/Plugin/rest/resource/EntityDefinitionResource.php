@@ -58,15 +58,25 @@ class EntityDefinitionResource extends ResourceBase {
    */
   protected $entityFieldManager;
 
+  /**
+   * The current request stack.
+   * 
+   * @var Symfony\Component\HttpFoundation\RequestStack
+   */
   protected $request;
 
   /**
-   * The entity field manager.
+   * The entity type bundle info.
    *
-   * @var \Drupal\Core\Entity\EntityFieldManager
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfo
    */
   protected $entityTypeBundle;
 
+  /**
+   * Form builder interface.
+   * 
+   * @var Drupal\Core\Entity\EntityFormBuilderInterface
+   */
   protected $formBuilder;
 
   /**
@@ -82,8 +92,16 @@ class EntityDefinitionResource extends ResourceBase {
    *   The available serialization formats.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
-   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
-   *   A current user instance.
+   * @param \Drupal\Core\Entity\EntityFieldManager
+   *   The entity field manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface
+   *   Entity type manager interface.
+   * @param \Symfony\Component\HttpFoundation\RequestStack
+   *   The current request stack.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfo
+   *   The entity type bundle info.
+   * @param \Drupal\Core\Entity\EntityFormBuilderInterface
+   *   Form builder interface.
    */
   public function __construct(
     array $configuration,
@@ -116,7 +134,7 @@ class EntityDefinitionResource extends ResourceBase {
           $this->entity_types[$key] = [
             'title' => $val->getLabel(),
             'bundles' => $this->entityTypeBundle->getBundleInfo($key),
-            'class' => $val->getClass(), //->{$entity_type_class}, //$class, //get_class($val), // "\{$val->originalClass}",
+            'class' => $val->getClass(),
           ];
         }
       }
@@ -148,8 +166,6 @@ class EntityDefinitionResource extends ResourceBase {
   /**
    * Responds to GET requests.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity object.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The HTTP response object.
@@ -178,31 +194,16 @@ class EntityDefinitionResource extends ResourceBase {
       $arguments = ['type' => $bundle];
     }
 
-    // $output = [
-    //   'type' => $entity_type,
-    //   'bundle' => $bundle,
-    //   'mode' => $mode,
-    //   'form_id' => $entity_type . '.' . ($bundle ?? 'default') . '.default',
-    //   'form' => [],
-    //   'classes' => [],
-    // ];
-
-    // $class = new $this->entity_types[$entity_type]['class'];
-
     $fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
-
     $entity =  $this->entity_types[$entity_type]['class']::create(['type' => $bundle]);
-
-    $form = \Drupal::service('entity.form_builder')->getForm($entity, $mode);
-
+    $form = $this->formBuilder->getForm($entity, $mode);
     $form_keys = array_keys($form);
-
     $form_elements = [];
     
     foreach ($form as $key => $value) {
-      // if (!isset($value['#type']) || (isset($value['#access']) && !$value['#access'])) {
-      //   continue;
-      // }
+      if (isset($value['#access']) && !$value['#access']) {
+        continue;
+      }
 
       if (!isset($fields[$key]) || !($fields[$key] instanceof BaseFieldDefinition || $fields[$key] instanceof FieldConfig)) {
         continue;
@@ -233,33 +234,28 @@ class EntityDefinitionResource extends ResourceBase {
         case 'list_string':
           $element['sub_type']= 'select';
           break;
+
         case 'string':
           $element['sub_type'] = 'text';
           break;
+
         case 'text_long':
           $element['sub_type'] = 'textarea';
           break;
+
         case 'boolean':
           $element['sub_type'] = 'checkbox';
           break;
+
         case 'entity_reference':
           if ($element['settings']['handler'] === 'default:taxonomy_term') {
             $vocab = array_keys($element['settings']['handler_settings']['target_bundles']);
             $vocab = reset($vocab);
 
-            if ($vocab === 'job_category') {
-              $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
-                'status' => 1,
-                'vid' => $vocab,
-              ]);
-            }
-            else {
-              $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
-                'status' => 1,
-                'vid' => $vocab,
-              ]);
-            }
-
+            $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
+              'status' => 1,
+              'vid' => $vocab,
+            ]);
 
             if (isset($element['settings'])) {
               $element['settings'] = [];
@@ -298,79 +294,13 @@ class EntityDefinitionResource extends ResourceBase {
     $response = new ModifiedResourceResponse([
       'fields' => $form_elements,
     ], 200);
+    
     return $response;
 
-    // foreach ($fields as $key => $value) {
-    //   $output['classes'][] = get_class($value);
-    //   if (in_array($key, $exclude)) continue;
-    //   if ($entity_type === 'user' && $key === 'name') continue;
-
-    //   if ($value instanceof BaseFieldDefinition) {
-    //     $output['form'][$key] = $value->toArray();
-    //     $output['form'][$key]['field_type'] = $value->getType();
-    //     //   'multiple' => $value->isMultiple(),
-    //     //   // 'default' => $value->getDefaultValue(),
-    //     //   'key' => $value->getName(),
-    //     //   'label' => $value->getLabel(),
-    //     //   'description' => $value->getDescription() ?? '',
-    //     //   'required' => $value->isRequired(),
-    //     //   'disabled' => $value->isReadOnly(),
-    //     //   'data_type' => $value->getDataType(),
-    //     //   'constraints' => $value->getConstraints(),
-    //     // ];
-    //   }
-
-    //   if ($value instanceof FieldConfig) {
-    //     $output['form'][$key] = $value->toArray();
-
-    //     if ($value->getType() === 'list_string') {
-    //       $field_storage = $this->entityTypeManager->getStorage('field_storage_config')->load(str_replace('field.storage.', '', $output['form'][$key]['dependencies']['config'][0]));
-
-    //       $output['form'][$key]['allowed_values'] = $field_storage->getSetting('allowed_values');
-    //     }
-    //   }
-
-    //   switch ($output['form'][$key]['field_type']) {
-    //     case 'list_string':
-    //       $output['form'][$key]['field_type'] = 'select';
-    //       break;
-    //     case 'string':
-    //       $output['form'][$key]['field_type'] = 'text';
-    //       break;
-    //     case 'text_long':
-    //       $output['form'][$key]['field_type'] = 'textarea';
-    //       break;
-    //     case 'boolean':
-    //       $output['form'][$key]['field_type'] = 'checkbox';
-    //       break;
-    //     case 'entity_reference':
-    //       if ($output['form'][$key]['settings']['handler'] === 'default:taxonomy_term') {
-    //         $vocab = array_keys($output['form'][$key]['settings']['handler_settings']['target_bundles']);
-    //         $vocab =reset($vocab);
-
-    //         $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
-    //           'status' => 1,
-    //           'vid' => $vocab,
-    //         ]);
-
-    //         $output['form'][$key]['allowed_values'] = [];
-
-    //         foreach ($terms as $term) {
-    //           $output['form'][$key]['allowed_values'][$term->id()] = $term->get('name')->value;
-    //         }
-    //       }
-    //       break;
-    //   }
-
-
-    //}
-
-    // return new ResourceResponse($output, 200);
   }
 
   public function sortByWeight($a, $b) {
     return $a['weight'] - $b['weight'];
   }
-
 
 }
