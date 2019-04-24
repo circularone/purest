@@ -220,6 +220,13 @@ class EntityDefinitionResource extends ResourceBase {
         $element['cardinality'] = $fields[$key]->getCardinality();
       }
 
+      if ($element['type'] === 'list_string') {
+        $field_storage_config = $this->entityTypeManager->getStorage('field_storage_config')
+                      ->load(str_replace('field.storage.', '', $element['dependencies']['config'][0]));
+
+        $element['settings']['allowed_values'] = $field_storage_config->getSetting('allowed_values');
+      }
+
       // if (isset($element['display']['form']['options']['type'])) {
       //   $element['type'] = $element['display']['form']['options']['type'];
       // }
