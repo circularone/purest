@@ -11,21 +11,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\rest\Plugin\Deriver\EntityDeriver;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
-use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityFormBuilderInterface;
-use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\field\Entity\FieldConfig;
 
 /**
  * Provides a resource to get view modes by entity and bundle.
- *
- * @see \Drupal\rest\Plugin\Deriver\EntityDeriver
  *
  * @RestResource(
  *   id = "purest_entity_definition_resource",
